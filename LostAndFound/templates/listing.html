@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost {{item_name}}</title>
+
+    <link rel="stylesheet" href="../static/css/form.css">
+</head>
+<body>
+    <div>{{listing.1}}</div>
+    <div>Found at: {{listing.2}}</div>
+    <div>Poster: {{listing.3}}</div>
+    <div>Additional info: {{listing.4}}</div>
+    <img src="/users/{{listing.0}}" alt="">
+    
+    <form action="/contact/{{poster}}">
+        <input class="field" type="text" name="message" placeholder="Write your message here">
+        <input class="btn" type="submit" name="">
+    </form>
+</body>
+</html>

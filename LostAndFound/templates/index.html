@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Lost and Found</title>
+
+    <link rel="stylesheet" href="../static/css/listings.css">
+</head>
+
+<body>
+    <a href="/create_listing_page">Create Listing</a>
+    <a href="/my_listings">View My Listings</a>
+    {% if login %}
+    <a href="/logout">Logout</a>
+    {% else %}
+    <a href="/login_page">Login</a>
+    <a href="/register_user_page">Create Account</a>
+    {% endif %}
+    <h1>Lost Items</h1>
+
+    {% if listings %}
+    <div class="listings">
+        {% for listing in listings %}
+        <div class="listing">
+            <a class="" href="/contact/{{listing.3}}/{{listing.0}}">
+                <div>{{listing.1}}</div>
+                <div>Found at: {{listing.2}}</div>
+                <div>Poster: {{listing.3}}</div>
+                <div>Additional info: {{listing.4}}</div>
+                <img style="width: 100%;" src="/users/{{listing.0}}" alt="">
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div>No listings here :)</div>
+    {% endif %}
+</body>
+
+</html>

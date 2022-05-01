@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Listing</title>
+    
+    <link rel="stylesheet" href="../static/css/form.css">
+    
+    <style>
+        body {
+            padding-top: 80px;
+        }
+    </style>
+</head>
+<body>
+    {% if login %}
+    <form action="/create_listing" method="post" enctype="multipart/form-data">
+        <input class="field" type="text" name="item_name" placeholder="Item Name">
+        <input class="field" type="text" name="item_location" placeholder="Location Found">
+        <input class="field" type="text" name="additional_info" placeholder="Additional Information">
+        <input type = "file" name = "file">
+        <input class='btn' type="submit">
+    </form>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    {% else %}
+    <p>Login to create posting</p>
+    {% endif %}
+</body>
+</html>

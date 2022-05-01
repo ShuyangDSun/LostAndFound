@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Listings</title>
+
+    <link rel="stylesheet" href="../static/css/listings.css">
+</head>
+
+<body>
+    {% if messages %}
+    <p>{{messages}}</p>
+    {% else %}
+
+    <h1>My Listings</h1>
+    <div class="listings">
+        {% for listing in listings %}
+        <div class="listing">
+            <a class="" href="">
+                <div>{{listing.1}}</div>
+                <div>Found at: {{listing.2}}</div>
+                <div>Poster: {{listing.3}}</div>
+                <div>Additional info: {{listing.4}}</div>
+                <img style="width: 100%;" src="/users/{{listing.0}}" alt="">
+            </a>
+            
+            <a href="/edit/{{listing.0}}">Edit</a>
+            <a href="/archive-listing/{{listing.0}}">Archive listing</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% endif %}
+
+    <a href="/archived">View my Archived</a>
+</body>
+
+</html>
