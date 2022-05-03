@@ -247,7 +247,7 @@ def get_image(postid):
     cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'], database=app.config['DB_NAME'])
     cursor = cnx.cursor()
 
-    query = "select * from listings where id=%s"
+    query = "SELECT * FROM listings WHERE id=%s"
     data = (postid,)
     cursor.execute(query, data)
     listings = cursor.fetchall()
@@ -261,25 +261,66 @@ def get_image(postid):
     return send_file(bytes_io, mimetype='image/jpeg')
 
 
-@app.route('/contact/<posterid>/<postid>', methods=['get'])
-def get_listing(posterid, postid):
+# @app.route('/contact/<posterid>/<postid>', methods=['get'])
+@app.route('/contact/<postid>', methods=['get'])
+# def get_listing(posterid, postid):
+def get_listing(postid):
     cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'], database=app.config['DB_NAME'])
     cursor = cnx.cursor()
 
-    query = "select * from listings where id=%s"
+    query = "SELECT * FROM listings WHERE id=%s"
     data = (postid,)
     cursor.execute(query, data)
     listings = cursor.fetchall()[0]
 
-    query = "select (email) from users where username=%s"
-    data = (posterid,)
-    cursor.execute(query, data)
-    email = cursor.fetchall()[0][0]
-    print(email)
+    # query = "select (email) from users where username=%s"
+    # data = (posterid,)
+    # cursor.execute(query, data)
+    # email = cursor.fetchall()[0][0]
 
     cursor.close()
     cnx.close()
-    return render_template("listing.html", listing=listings, poster=email)
+    # return render_template("listing.html", listing=listings, poster=email)
+    return render_template("listing.html", listing=listings)
+
+
+@app.route('/contact/send-messages/<postid>', methods=['post'])
+def send_messages(postid):
+    cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'], database=app.config['DB_NAME'])
+    cursor = cnx.cursor()
+
+    query = "INSERT INTO messages VALUES (%s, %s, %s, %s)"
+    data = (None, postid, session['username'], request.form['message'])
+    cursor.execute(query, data)
+    cnx.commit()
+
+    cursor.close()
+    cnx.close()
+
+    return redirect("/contact/" + postid)
+
+
+@app.route('/contact/get-messages/<postid>', methods=['get'])
+def get_messages(postid):
+    cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'], database=app.config['DB_NAME'])
+    cursor = cnx.cursor()
+
+    query = "SELECT senderid, message FROM messages WHERE postid=%s"
+    data = (postid,)
+    cursor.execute(query, data)
+    messages = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
+
+    d = {"messages": []}
+    for sender, message in messages:
+        if sender != session["username"]:
+            d["messages"].append({"sender": sender, "message": message, "is_sender": "left"})
+        else:
+            d["messages"].append({"sender": sender, "message": message, "is_sender": "right"})
+
+    return d
 
 
 if __name__ == "__main__":

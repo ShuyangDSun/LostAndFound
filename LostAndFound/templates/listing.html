@@ -1,23 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lost {{item_name}}</title>
 
-    <link rel="stylesheet" href="../static/css/form.css">
+    <!-- <link rel="stylesheet" href="../static/css/form.css"> -->
+
+    <style>
+        .message-window {
+            border: solid 1px red;
+            width: 400px;
+        }
+
+        .message-box {
+            height: 300px;
+            overflow-y: auto;
+        }
+
+        .message-blob {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sender-name {
+            padding: 5px;
+        }
+
+        .textmessage {
+            padding: 5px;
+            width: fit-content;
+            max-width: 80%;
+            border-radius: 10px;
+            background-color: red;
+            color: white;
+            margin: 0px;
+            margin-bottom: 1px;
+        }
+
+        .left>* {
+            margin-right: auto;
+        }
+
+        .right>* {
+            margin-left: auto;
+        }
+
+        .send-message {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .field {
+            width: 65%;
+        }
+
+        .send-btn {
+            width: 30%;
+        }
+    </style>
 </head>
+
 <body>
     <div>{{listing.1}}</div>
     <div>Found at: {{listing.2}}</div>
     <div>Poster: {{listing.3}}</div>
     <div>Additional info: {{listing.4}}</div>
     <img src="/users/{{listing.0}}" alt="">
-    
-    <form action="/contact/{{poster}}">
-        <input class="field" type="text" name="message" placeholder="Write your message here">
-        <input class="btn" type="submit" name="">
-    </form>
+
+    <div class="message-window">
+        <div class="message-box">
+            <div class="message-blob right">
+                <div class="sender-name">UnripedBanana</div>
+                <p class="textmessage">Whats up my slime</p>
+                <p class="textmessage">hey there buddy chum pal friend buddy pal chum bud friend fella bruther
+                    amigo
+                    pal buddy friend chummy chum chum pal i don't mean to be rude my friend pal home slice bread slice
+                    dawg
+                    but i gotta warn ya if u take one more diddly darn step right there im going to have to diddly darn
+                    snap
+                    ur neck and wowza wouldn't that be a crummy juncture, huh? do yuo want that? do wish upon yourself
+                    to
+                    come into physical experience with a crummy juncture? because friend buddy chum friend chum pally
+                    pal
+                    chum friend if you keep this up well gosh diddly darn i just might have to get not so friendly with
+                    u my
+                    friendly friend friend pal friend buddy chum pally friend chum buddy...</p>
+            </div>
+
+        </div>
+        <form action="/contact/send-messages/{{listing.0}}" method="post" class="send-message">
+            <input class="field" type="text" name="message" placeholder="Write your message here">
+            <input class="send-btn" type="submit" value="Send message">
+        </form>
+    </div>
+    <script>
+        let message_box = document.querySelector(".message-box");
+        message_box.scrollTop = message_box.scrollHeight - message_box.clientHeight;
+
+        // ajax form submit
+
+        // let send_messages = document.querySelector(".send-btn");
+        // send_messages.addEventListener("click", function(event) {
+        //     event.preventDefault();
+
+
+        // });
+
+        function get_messages() {
+            let xhr = new XMLHttpRequest();
+
+            xhr.onload = function () {
+                let responseObject = JSON.parse(xhr.responseText);
+
+                let updated_message_box = "";
+                if (responseObject['messages'].length) {
+                    let senderid = "";
+                    for (const message of responseObject['messages']) {
+                        if (senderid != message['sender']) {
+                            if (updated_message_box != "") {
+                                updated_message_box += "</div>";
+                            }
+                            updated_message_box += '<div class="message-blob ' + message['is_sender'] + '">';
+                            updated_message_box += '<div class="sender-name">' + message['sender'] + '</div>';
+                        }
+                        updated_message_box += '<p class="textmessage">' + message['message'] + '</p>'
+                        senderid = message['sender'];
+                    }
+                    updated_message_box += '</div>'
+                }
+
+                message_box.innerHTML = updated_message_box;
+
+                console.log(responseObject);
+            }
+
+            xhr.open('GET', '/contact/get-messages/{{listing.0}}', true);
+            xhr.send(null);
+        }
+
+        // make sure sender is logged in
+
+        get_messages();
+        setInterval(function () {
+            get_messages();
+        }, 1000);
+
+    </script>
 </body>
+
 </html>
