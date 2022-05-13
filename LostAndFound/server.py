@@ -39,9 +39,9 @@ def get_listings():
 @app.route('/')
 def index():
     if 'username' in session:
-        return render_template("index.html", listings=get_listings(), login=True)
+        return render_template("index.html", initial=session['username'][0].upper(), listings=get_listings(), login=True)
     else:
-        return render_template("index.html", listings=get_listings(), login=False)
+        return render_template("index.html", listings=get_listings())
 
 
 @app.route('/my_listings')
@@ -57,9 +57,9 @@ def my_listings():
         cursor.close()
         cnx.close()
         if listings:
-            return render_template("my_listings.html", listings=listings)
+            return render_template("my_listings.html", initial=session['username'][0].upper(), login=True, listings=listings)
         else:
-            return render_template("my_listings.html", messages="No listings here :)")
+            return render_template("my_listings.html", initial=session['username'][0].upper(), login=True, messages="You have no listings :)")
     else:
         return render_template("my_listings.html", messages="Login to see your listings")
 
@@ -77,9 +77,9 @@ def view_archived():
         cursor.close()
         cnx.close()
         if listings:
-            return render_template("archived.html", listings=listings)
+            return render_template("archived.html", initial=session['username'][0].upper(), login=True, listings=listings)
         else:
-            return render_template("archived.html", messages="No archived listings here :)")
+            return render_template("archived.html", initial=session['username'][0].upper(), login=True, messages="No archived listings here :)")
     else:
         return render_template("archived.html", messages="Login to see your archived listings")
 

@@ -1,37 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="../static/css/navbar.css">
     <link rel="stylesheet" href="../static/css/listings.css">
 </head>
+
 <body>
-    {% if messages %}
-    <p>{{messages}}</p>
-    {% else %}
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-md navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Lost and Found</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
-    <h1>My Listings</h1>
-    <div class="listings">
-        {% for listing in listings %}
-        <div class="listing">
-            <a class="" href="">
-                <div>{{listing.1}}</div>
-                <div>Found at: {{listing.2}}</div>
-                <div>Poster: {{listing.3}}</div>
-                <div>Additional info: {{listing.4}}</div>
-                <img style="width: 100%;" src="/users/{{listing.0}}" alt="">
-            </a>
-            
-            <a href="/relist-listing/{{listing.0}}">Relist</a>
+                <!-- Search bar to be implemented -->
+                <!-- <form class="d-flex">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form> -->
+
+                <ul class="navbar-nav ms-auto mb-2 mb-md-0">
+                    <!-- navbar items -->
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/create_listing_page">Create Listing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/my_listings">View My Listings</a>
+                    </li>
+
+                    <!-- Dropdown -->
+                    {% if login %}
+                    <li class="nav-item dropdown">
+                        <a class="navbar-brand nav-link dropdown-toggle" href="" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+
+                            <div class="profile-pic text-center nav-text">{{initial}}</div>
+                            <!-- <img class="profile-pic" src="../static/images/blank-profile-picture.webp" alt=""> -->
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <!-- Other drop down menu items to be added, view profile, etc... -->
+                            <!-- <li><a class="dropdown-item" href="#">Action</a></li>
+                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li> -->
+                            <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                        </ul>
+                    </li>
+
+                    {% else %}
+                    <a role="button" class="btn btn-primary" href="/login_page">Login</a>
+                    <div class="navbar-text text-dark">or</div>
+                    <a role="button" class="btn btn-primary" href="/register_user_page">Register</a>
+                    {% endif %}
+                </ul>
+            </div>
         </div>
-        {% endfor %}
+    </nav>
+
+    <div id="main-body" class="container" style="padding-bottom: 50px;">
+
+        <div class="text-center text-sm-center text-md-center text-lg-start">
+            <div class="d-inline-flex align-items-center">
+                <p class="fs-1 gy-5" style="padding-top: 16px;">Archived Listings</p>
+
+                {% if login %}
+                <a href="/my_listings" class="btn btn-outline-secondary" style="margin-left: 30px;">Go back to my
+                    listings</a>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {% if listings %}
+        <div class="row position-relative">
+
+            {% for listing in listings %}
+
+            <div class="col-12 col-md-6 col-lg-4 col-xl-3 d-flex justify-content-center">
+                <div class="card" style="width: 18rem;">
+                    <img src="/users/{{listing.0}}" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">{{listing.1}}</h5>
+                        <p class="card-text">Found in: {{listing.2}}</p>
+
+                        <hr>
+
+                        <h5 class="card-title">Additional info</h5>
+                        <p class="card-text text-truncate">{{listing.4}}</p>
+
+                        <!-- buttons -->
+                        <a href="/relist-listing/{{listing.0}}" class="card-link btn btn-primary">Relist</a>
+
+                        <!-- Posted date -->
+                        <!-- <p class="card-text"><small class="text-muted">Posted</small></p> -->
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="position-absolute top-50 start-50 translate-middle fs-2 text-muted">{{messages}}</div>
+        {% endif %}
     </div>
-    {% endif %}
 
-    <a href="/my_listings">Go back to my listings</a>
+    <footer class="bg-dark">
+        <div class="container">
+            <!-- left and right sides to be maybe implemented -->
+            <!-- <div class="row">
+                <div class="col text-white d-flex justify-content-center">
+                    Something
+                </div>
 
+                <div class="col text-white d-flex justify-content-center">
+                    Other thing
+                </div>
+            </div> -->
+
+            <div class="row" style="padding: 20px 0px;">
+                <div class="col text-secondary d-flex justify-content-center">&copy; LostAndFound 2022</div>
+            </div>
+
+        </div>
+    </footer>
+
+    <script>
+        let navbar = document.querySelector("nav");
+        let main_body = document.querySelector("#main-body");
+        let footer = document.querySelector("footer");
+
+        function set_min_height() {
+            console.log("navbar: " + navbar.clientHeight);
+            console.log("footer: " + footer.clientHeight);
+            console.log("viewport: " + window.innerHeight);
+            console.log("");
+            let new_height = window.innerHeight - (navbar.clientHeight + footer.clientHeight);
+            main_body.style.minHeight = new_height + "px";
+        }
+
+        window.addEventListener("resize", set_min_height);
+        set_min_height();
+
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
 </body>
+
 </html>

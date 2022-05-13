@@ -2,10 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cb318418-9be0-4286-8b7a-e1f9b9ccc0c9" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LostAndFound/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/LostAndFound/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LostAndFound/static/css/listings.css" beforeDir="false" afterPath="$PROJECT_DIR$/LostAndFound/static/css/listings.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LostAndFound/templates/archived.html" beforeDir="false" afterPath="$PROJECT_DIR$/LostAndFound/templates/archived.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LostAndFound/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/LostAndFound/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LostAndFound/templates/listing.html" beforeDir="false" afterPath="$PROJECT_DIR$/LostAndFound/templates/listing.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LostAndFound/templates/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/LostAndFound/templates/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LostAndFound/templates/my_listings.html" beforeDir="false" afterPath="$PROJECT_DIR$/LostAndFound/templates/my_listings.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -9,3 +9,10 @@
 
     width: 200px;
 }
+
+.card {
+    margin-bottom: 30px;
+}
+.card-img-top {
+    height: 200px;
+}
