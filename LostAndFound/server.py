@@ -118,6 +118,7 @@ def edit_listing(postid):
 
     cursor.close()
     cnx.close()
+
     return redirect('/my_listings')
 
 
@@ -164,10 +165,10 @@ def register_user_page():
 def register_user():
     cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'], database=app.config['DB_NAME'])
     cursor = cnx.cursor()
-    insert_stmp = 'INSERT INTO users VALUES (%s, %s, %s, %s, %s)'
+    insert_stmp = 'INSERT INTO users VALUES (%s, %s, %s, %s)'
 
     hash = generate_password_hash(request.form['password'])
-    data = (None, request.form['username'], request.form['email'], hash, request.form['fullname'])
+    data = (None, request.form['username'], request.form['email'], hash)
     cursor.execute(insert_stmp, data)
     cnx.commit()
     cursor.close()
@@ -177,7 +178,10 @@ def register_user():
 
 @app.route('/login_page')
 def login_page():
-    return render_template("login.html")
+    if "username" in session:
+        return render_template("login.html", login=True)
+    else:
+        return render_template("login.html")
 
 
 @app.route('/login', methods=['post'])
@@ -261,9 +265,7 @@ def get_image(postid):
     return send_file(bytes_io, mimetype='image/jpeg')
 
 
-# @app.route('/contact/<posterid>/<postid>', methods=['get'])
 @app.route('/contact/<postid>', methods=['get'])
-# def get_listing(posterid, postid):
 def get_listing(postid):
     cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'], database=app.config['DB_NAME'])
     cursor = cnx.cursor()
@@ -273,15 +275,13 @@ def get_listing(postid):
     cursor.execute(query, data)
     listings = cursor.fetchall()[0]
 
-    # query = "select (email) from users where username=%s"
-    # data = (posterid,)
-    # cursor.execute(query, data)
-    # email = cursor.fetchall()[0][0]
-
     cursor.close()
     cnx.close()
-    # return render_template("listing.html", listing=listings, poster=email)
-    return render_template("listing.html", listing=listings)
+
+    if 'username' in session:
+        return render_template("listing.html", login=True, initial=listings[3][0].upper(), listing=listings)
+    else:
+        return render_template("listing.html", initial=listings[3][0].upper(), listing=listings)
 
 
 @app.route('/contact/send-messages/<postid>', methods=['post'])

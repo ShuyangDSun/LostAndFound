@@ -1,29 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Listing</title>
-    
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
     <link rel="stylesheet" href="../static/css/form.css">
-    
-    <style>
-        body {
-            padding-top: 80px;
-        }
-    </style>
+
 </head>
+
 <body>
-    {% if login %}
-    <form action="/create_listing" method="post" enctype="multipart/form-data">
-        <input class="field" type="text" name="item_name" placeholder="Item Name">
-        <input class="field" type="text" name="item_location" placeholder="Location Found">
-        <input class="field" type="text" name="additional_info" placeholder="Additional Information">
-        <input type = "file" name = "file">
-        <input class='btn' type="submit">
-    </form>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    {% else %}
-    <p>Login to create posting</p>
-    {% endif %}
+
+    <div class="container main-body d-flex justify-content-center align-items-center">
+        {% if login %}
+
+        <form action="/create_listing" method="post" enctype="multipart/form-data">
+            <p class="fs-1 pb-20">Create Listing</p>
+
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" name="item_name" id="item_name" placeholder="Item name">
+                <label for="item_name">Item name</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" name="item_location" id="item_location"
+                    placeholder="Item location">
+                <label for="item_location">Item location</label>
+            </div>
+
+            <div class="mb-3">
+                <label for="additional_info" class="form-label">Additional info</label>
+                <textarea class="form-control" name="additional_info" id="additional_info" rows="5"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="image_file" class="form-label">Upload image of lost item</label>
+                <input class="form-control" type="file" name="file" id="image_file">
+            </div>
+            <input class='btn btn-primary' type="submit">
+        </form>
+
+        {% else %}
+        <div class="fs-1 mb-3">You must login to post a lost item</div>
+
+        <div class="container d-flex justify-content-center align-items-center">
+            <a role="button" class="btn btn-primary" href="/login_page">Login</a>
+            <div class="navbar-text text-dark ms-3 me-3">or</div>
+            <a role="button" class="btn btn-primary" href="/register_user_page">Register</a>
+        </div>
+        {% endif %}
+    </div>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
 </body>
+
 </html>
