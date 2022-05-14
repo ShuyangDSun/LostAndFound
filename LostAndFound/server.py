@@ -84,23 +84,6 @@ def view_archived():
         return render_template("archived.html", messages="Login to see your archived listings")
 
 
-@app.route('/edit/<postid>', methods=['get'])
-def edit(postid):
-    cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'],
-                                  database=app.config['DB_NAME'])
-    cursor = cnx.cursor()
-
-    query = "SELECT * FROM listings WHERE id=%s"
-    data = (postid,)
-    cursor.execute(query, data)
-    listing = cursor.fetchall()[0]
-
-    cursor.close()
-    cnx.close()
-
-    return render_template("edit_my_listing.html", postid=postid, listing=listing)
-
-
 @app.route('/edit-listing/<postid>', methods=['post'])
 def edit_listing(postid):
     cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'],
@@ -279,6 +262,7 @@ def get_listing(postid):
     cnx.close()
 
     if 'username' in session:
+
         return render_template("listing.html", login=True, initial=listings[3][0].upper(), listing=listings)
     else:
         return render_template("listing.html", initial=listings[3][0].upper(), listing=listings)
@@ -315,11 +299,14 @@ def get_messages(postid):
 
     d = {"messages": []}
     for sender, message in messages:
-        if sender != session["username"]:
-            d["messages"].append({"sender": sender, "message": message, "is_sender": "left"})
-        else:
-            d["messages"].append({"sender": sender, "message": message, "is_sender": "right"})
 
+        if 'username' in session:
+            if sender != session["username"]:
+                d["messages"].append({"sender": sender, "message": message, "is_sender": False})
+            else:
+                d["messages"].append({"sender": sender, "message": message, "is_sender": True})
+        else:
+            d["messages"].append({"sender": sender, "message": message, "is_sender": False})
     return d
 
 

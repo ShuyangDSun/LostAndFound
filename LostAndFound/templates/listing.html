@@ -14,60 +14,33 @@
     <!-- <link rel="stylesheet" href="../static/css/listings.css"> -->
 
     <style>
+        .bg-light.textmessage {
+            background-color: rgb(230, 230, 230) !important;
+        }
+
         .img-container {
             height: 400px;
         }
 
-        .message-window {
-            border: solid 1px red;
-            width: 400px;
-        }
-
         .message-box {
-            height: 300px;
-            overflow-y: auto;
-        }
-
-        .message-blob {
-            margin-top: 10px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sender-name {
-            padding: 5px;
+            padding-bottom: 16px;
+            height: 400px;
         }
 
         .textmessage {
-            padding: 5px;
             width: fit-content;
+            border-radius: 16px;
             max-width: 80%;
-            border-radius: 10px;
-            background-color: red;
-            color: white;
-            margin: 0px;
-            margin-bottom: 1px;
+            margin: 0px 0px 1px 0px;
         }
 
-        .left>* {
-            margin-right: auto;
-        }
-
-        .right>* {
-            margin-left: auto;
+        .sender-name {
+            font-size: 13px;
         }
 
         .send-message {
             width: 100%;
             box-sizing: border-box;
-        }
-
-        .field {
-            width: 65%;
-        }
-
-        .send-btn {
-            width: 30%;
         }
     </style>
 </head>
@@ -129,6 +102,8 @@
     </nav>
 
     <div id="main-body" class="container" style="padding-top: 16px; padding-bottom: 50px;">
+
+        <!-- image posting -->
         <p class="fs-1 gy-5 text-center text-sm-center text-md-center text-lg-start">Lost item: {{listing.1}}</p>
 
         <div class="card mb-3">
@@ -160,17 +135,31 @@
             </div>
         </div>
 
-        <div class="message-window">
-            <div class="message-box">
+        <!-- message box -->
+        <div class="message-window border border-secondary rounded">
+            <div class="container message-box overflow-auto">
 
             </div>
-            <form action="/contact/send-messages/{{listing.0}}" method="post" class="send-message">
-                <input class="field" type="text" name="message" placeholder="Write your message here">
-                <input class="send-btn" type="submit" value="Send message">
+
+            {% if login %}
+            <form action="/contact/send-messages/{{listing.0}}" method="post" class="send-message position-relative">
+                <button type="button" onclick="scroll_to_bottom()" id="new-message"
+                    class="invisible btn btn-danger rounded-pill text-light position-absolute bottom-100 start-50 translate-middle">New
+                    message</button>
+                <div class="container input-group mb-3">
+                    <input class="form-control rounded" type="text" name="message" placeholder="Message">
+                    <input id="send-btn" class="btn btn-primary rounded ms-1 me-12" type="submit" value="Send">
+                </div>
             </form>
+            {% else %}
+            <div class="alert alert-info mb-0" role="alert">
+                Login to send messages!
+            </div>
+            {% endif %}
         </div>
     </div>
 
+    <!-- footer -->
     <footer class="bg-dark">
         <div class="container">
             <!-- left and right sides to be maybe implemented -->
@@ -190,7 +179,6 @@
 
         </div>
     </footer>
-
     <script>
         // footer
         let navbar = document.querySelector("nav");
@@ -211,35 +199,61 @@
 
         // messages
         let message_box = document.querySelector(".message-box");
-        message_box.scrollTop = message_box.scrollHeight - message_box.clientHeight;
 
         // ajax form submit
 
-        // let send_messages = document.querySelector(".send-btn");
-        // send_messages.addEventListener("click", function(event) {
-        //     event.preventDefault();
+        let send_messages = document.querySelector("#send-btn");
+        send_messages.addEventListener("click", function(event) {
+            event.preventDefault();
 
+            
+        });
 
-        // });
+        let new_message_btn = document.querySelector("#new-message");
+        function scroll_to_bottom() {
+            message_box.scrollTop = message_box.scrollHeight - message_box.clientHeight;
 
+            if (!new_message_btn.classList.contains("invisible")) {
+                new_message_btn.classList.add("invisible");
+            }
+        }
+
+        let prev_max_height = 0;
         function get_messages() {
             let xhr = new XMLHttpRequest();
 
             xhr.onload = function () {
+                if (message_box.scrollTop == message_box.scrollHeight - message_box.clientHeight) {
+                    var changeHeight = true;
+                } else if (prev_max_height != message_box.scrollHeight - message_box.clientHeight) {
+                    if (new_message_btn.classList.contains("invisible")) {
+                        new_message_btn.classList.remove("invisible")
+                    }
+                }
+
                 let responseObject = JSON.parse(xhr.responseText);
 
                 let updated_message_box = "";
                 if (responseObject['messages'].length) {
                     let senderid = "";
                     for (const message of responseObject['messages']) {
+                        if (message['is_sender']) {
+                            var side = "end";
+                            var color = "text-light bg-primary"
+                        } else {
+                            var side = "start";
+                            var color = "text-dark bg-light"
+                        }
+
                         if (senderid != message['sender']) {
                             if (updated_message_box != "") {
                                 updated_message_box += "</div>";
                             }
-                            updated_message_box += '<div class="message-blob ' + message['is_sender'] + '">';
-                            updated_message_box += '<div class="sender-name">' + message['sender'] + '</div>';
+                            updated_message_box += '<div class="d-flex flex-column mt-3 align-items-' + side + '">';
+                            updated_message_box += '<div class="sender-name text-muted">' + message['sender'] + '</div>';
                         }
-                        updated_message_box += '<p class="textmessage">' + message['message'] + '</p>'
+                        updated_message_box += '<div class="textmessage container bg-gradient ' + color + '">' +
+                            '<div class="fs-6 pt-1 pb-1">' + message['message'] + '</div>' + '</div>'
                         senderid = message['sender'];
                     }
                     updated_message_box += '</div>'
@@ -248,6 +262,12 @@
                 message_box.innerHTML = updated_message_box;
 
                 console.log(responseObject);
+
+                // set scroll height to bottom
+                if (changeHeight) {
+                    prev_max_height = message_box.scrollHeight - message_box.clientHeight;
+                    scroll_to_bottom();
+                }
             }
 
             xhr.open('GET', '/contact/get-messages/{{listing.0}}', true);
