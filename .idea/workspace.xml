@@ -4,8 +4,8 @@
     <list default="true" id="cb318418-9be0-4286-8b7a-e1f9b9ccc0c9" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LostAndFound/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/LostAndFound/server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LostAndFound/templates/listing.html" beforeDir="false" afterPath="$PROJECT_DIR$/LostAndFound/templates/listing.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LostAndFound/templates/my_listings.html" beforeDir="false" afterPath="$PROJECT_DIR$/LostAndFound/templates/my_listings.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Procfile" beforeDir="false" afterPath="$PROJECT_DIR$/Procfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/runtime.txt" beforeDir="false" afterPath="$PROJECT_DIR$/runtime.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -156,13 +156,6 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/LostAndFound/server.py</url>
-          <line>381</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">

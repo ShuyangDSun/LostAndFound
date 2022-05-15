@@ -384,4 +384,4 @@ def get_messages(postid):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')  # use 0.0.0.0, allow access this app from my cell phone
+    app.run(debug=False, host='0.0.0.0')  # use 0.0.0.0, allow access this app from my cell phone
