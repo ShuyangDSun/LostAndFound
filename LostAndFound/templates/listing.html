@@ -22,6 +22,10 @@
             height: 400px;
         }
 
+        .img-fluid {
+            max-height: 100%;
+        }
+
         .message-box {
             padding-bottom: 16px;
             height: 400px;
@@ -204,7 +208,7 @@
         function scroll_to_bottom() {
             message_box.scrollTop = message_box.scrollHeight - message_box.clientHeight;
 
-            if (!new_message_btn.classList.contains("invisible")) {
+            if (new_message_btn && !new_message_btn.classList.contains("invisible")) {
                 new_message_btn.classList.add("invisible");
             }
         }
@@ -212,8 +216,12 @@
         // ajax form submit
 
         // send
-        let send_messages = document.querySelector("#send-btn");
-        send_messages.addEventListener("click", function (event) {
+        let send_message = document.querySelector("#send-btn");
+        if (send_message) {
+            send_message.addEventListener("click", send_messages);
+        }
+
+        function send_messages(event) {
             let message_input = document.querySelector("#message");
 
             if (message_input.value != "") {
@@ -240,7 +248,7 @@
             scroll_to_bottom();
             get_messages();
             event.preventDefault();
-        });
+        }
 
         // receive
         let prev_max_height = 0;
@@ -251,7 +259,7 @@
                 if (message_box.scrollTop == message_box.scrollHeight - message_box.clientHeight) {
                     var changeHeight = true;
                 } else if (prev_max_height != message_box.scrollHeight - message_box.clientHeight) {
-                    if (new_message_btn.classList.contains("invisible")) {
+                    if (new_message_btn && new_message_btn.classList.contains("invisible")) {
                         new_message_btn.classList.remove("invisible")
                     }
                 }

@@ -90,12 +90,16 @@ def edit_listing(postid):
                                   database=app.config['DB_NAME'])
     cursor = cnx.cursor()
 
-    query = "UPDATE listings SET item_name=%s, item_location=%s, additional_info=%s, image=%s WHERE id=%s"
+    query = "UPDATE listings SET item_name=%s, item_location=%s, additional_info=%s WHERE id=%s"
+
+    data = (request.form['item_name'], request.form['item_location'], request.form['additional_info'], postid)
 
     f = request.files['file']
-    new_image = f.read()
+    if f.filename != '':
+        query = "UPDATE listings SET item_name=%s, item_location=%s, additional_info=%s, image=%s WHERE id=%s"
+        new_image = f.read()
+        data = (request.form['item_name'], request.form['item_location'], request.form['additional_info'], new_image, postid)
 
-    data = (request.form['item_name'], request.form['item_location'], request.form['additional_info'], new_image, postid)
     cursor.execute(query, data)
     cnx.commit()
 
@@ -331,9 +335,9 @@ def get_listing(postid):
     cnx.close()
 
     if 'username' in session:
-        return render_template("listing.html", login=True, initial=listings[3][0].upper(), listing=listings)
+        return render_template("listing.html", login=True, initial=session['username'][0].upper(), listing=listings)
     else:
-        return render_template("listing.html", initial=listings[3][0].upper(), listing=listings)
+        return render_template("listing.html", listing=listings)
 
 
 @app.route('/contact/send-messages/<postid>', methods=['post'])
@@ -380,4 +384,4 @@ def get_messages(postid):
 
 
 if __name__ == "__main__":
-    app.run(debug=False, host='0.0.0.0')  # use 0.0.0.0, allow access this app from my cell phone
+    app.run(debug=True, host='0.0.0.0')  # use 0.0.0.0, allow access this app from my cell phone

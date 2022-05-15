@@ -110,35 +110,41 @@
                         </button>
 
                         <!-- Modal -->
-                        <div class="modal fade" id="edit-{{listing.0}}" tabindex="-1" aria-labelledby="exampleModalLabel"
-                            aria-hidden="true">
+                        <div class="modal fade" id="edit-{{listing.0}}" tabindex="-1"
+                            aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title" id="exampleModalLabel">Make your changes</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        <button type="button" class="btn-close" onclick="close_edits(this)" data-bs-dismiss="modal"
                                             aria-label="Close"></button>
                                     </div>
 
-                                    <form action="/edit-listing/{{listing.0}}" method="post" enctype="multipart/form-data">
+                                    <form class="edit-post" action="/edit-listing/{{listing.0}}" method="post"
+                                        enctype="multipart/form-data">
                                         <div class="modal-body">
+                                            <!-- error message -->
+                                            <div class="alert alert-danger" hidden="true" role="alert"></div>
 
+                                            <!-- form submit -->
                                             <div class="form-floating mb-3">
                                                 <input type="text" class="form-control" name="item_name" id="item_name"
-                                                    placeholder="Item name" value="{{listing.1}}">
+                                                    placeholder="Item name" value="{{listing.1}}"
+                                                    data-default="{{listing.1}}">
                                                 <label for="item_name">Item name</label>
                                             </div>
                                             <div class="form-floating mb-3">
                                                 <input type="text" class="form-control" name="item_location"
-                                                    id="item_location" placeholder="Item location"
-                                                    value="{{listing.2}}">
+                                                    id="item_location" placeholder="Item location" value="{{listing.2}}"
+                                                    data-default="{{listing.2}}">
                                                 <label for="item_location">Item location</label>
                                             </div>
 
                                             <div class="mb-3">
                                                 <label for="additional_info" class="form-label">Additional info</label>
                                                 <textarea class="form-control" name="additional_info"
-                                                    id="additional_info" rows="5">{{listing.4}}</textarea>
+                                                    id="additional_info" rows="5"
+                                                    data-default="{{listing.4}}">{{listing.4}}</textarea>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="image_file" class="form-label">Choose new image to
@@ -147,9 +153,9 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary"
-                                                data-bs-dismiss="modal">Cancel</button>
-                                            <input class='btn btn-primary' type="submit">
+                                            <button type="button" class="btn-cancel btn btn-secondary"
+                                                data-bs-dismiss="modal" onclick="cancel_edits(this)">Cancel</button>
+                                            <input id="submit-edit" class='btn btn-primary' type="submit">
                                         </div>
                                     </form>
                                 </div>
@@ -193,6 +199,7 @@
     </footer>
 
     <script>
+        // page sizing
         let navbar = document.querySelector("nav");
         let main_body = document.querySelector("#main-body");
         let footer = document.querySelector("footer");
@@ -208,6 +215,52 @@
 
         window.addEventListener("resize", set_min_height);
         set_min_height();
+
+        // edit
+        let forms = document.querySelectorAll(".edit-post");
+        for (let i = 0; i < forms.length; i++) {
+            forms[i].addEventListener('submit', parse_edits);
+        }
+        function parse_edits(events) {
+            let form = events.target;
+            let formdata = new FormData(form);
+
+            let error_message = form.children[0].children[0];
+            if (formdata.get('item_name') == '') {
+                error_message.innerHTML = "Please fill in the item name"
+                error_message.hidden = false;
+                events.preventDefault();
+            } else if (formdata.get('item_location') == '') {
+                error_message.innerHTML = "Please specify the item location"
+                error_message.hidden = false;
+                events.preventDefault();
+            }
+        }
+
+        function close_edits(button) {
+            let form = button.parentElement.parentElement.children[1];
+
+            form.children[0].children[0].hidden = true;
+
+            let item_name = form.children[0].children[1].children['item_name'];
+            let item_location = form.children[0].children[2].children['item_location']
+            let additional_info = form.children[0].children[3].children['additional_info'];
+            item_name.value = item_name.dataset.default;
+            item_location.value = item_location.dataset.default;
+            additional_info.innerHTML = additional_info.dataset.default;
+        }
+        function cancel_edits(button) {
+            let form = button.parentElement.parentElement;
+
+            form.children[0].children[0].hidden = true;
+
+            let item_name = form.children[0].children[1].children['item_name'];
+            let item_location = form.children[0].children[2].children['item_location']
+            let additional_info = form.children[0].children[3].children['additional_info'];
+            item_name.value = item_name.dataset.default;
+            item_location.value = item_location.dataset.default;
+            additional_info.innerHTML = additional_info.dataset.default;
+        }
 
     </script>
 
