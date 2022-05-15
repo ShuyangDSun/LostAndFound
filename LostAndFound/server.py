@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template, session
+from flask import Flask, request, redirect, url_for, render_template, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from io import BytesIO
 from flask import send_file
@@ -102,7 +102,7 @@ def edit_listing(postid):
     cursor.close()
     cnx.close()
 
-    return redirect('/my_listings')
+    return redirect(url_for('my_listings'))
 
 
 @app.route('/archive-listing/<postid>', methods=['get'])
@@ -116,11 +116,9 @@ def archive_listing(postid):
     cursor.execute(query, data)
     cnx.commit()
 
-    print("no longer live")
-
     cursor.close()
     cnx.close()
-    return redirect('/my_listings')
+    return redirect(url_for('my_listings'))
 
 
 @app.route('/relist-listing/<postid>', methods=['get'])
@@ -136,44 +134,87 @@ def relist_listing(postid):
 
     cursor.close()
     cnx.close()
-    return redirect('/archived')
+    return redirect(url_for('view_archived'))
 
 
 @app.route('/register_user_page')
 def register_user_page():
-    return render_template("register_user.html")
+    username = request.args.get('username')
+    email = request.args.get('email')
+    if username is None:
+        username = ""
+    if email is None:
+        email = ""
+
+    if 'next_url' not in session:
+        session['next_url'] = request.referrer
+
+    return render_template("register_user.html", username=username, email=email, messages=request.args.get('messages'))
 
 
 @app.route('/register_user', methods=['post'])
 def register_user():
+    if not request.form['username'] or not request.form['email'] or not request.form['password']:
+        return redirect(url_for('register_user_page', messages="Please enter all fields"))
+
     cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'], database=app.config['DB_NAME'])
     cursor = cnx.cursor()
     insert_stmp = 'INSERT INTO users VALUES (%s, %s, %s, %s)'
 
     hash = generate_password_hash(request.form['password'])
-    data = (None, request.form['username'], request.form['email'], hash)
-    cursor.execute(insert_stmp, data)
-    cnx.commit()
+
+    username = request.form['username']
+    email = request.form['email']
+
+    data = (None, username, email, hash)
+
+    try:
+        cursor.execute(insert_stmp, data)
+        cnx.commit()
+    except mysql.connector.IntegrityError as err:
+        cursor.close()
+        cnx.close()
+
+        message = "Integrity Error"
+
+        # if there are duplicate entries for primary keys
+        if err.msg.split()[-1] == "'users.username_UNIQUE'":
+            message = "Username has already been taken"
+        elif err.msg.split()[-1] == "'users.email_UNIQUE'":
+            message = "Email has already been taken"
+
+        return redirect(url_for("register_user_page", username=username, email=email, messages=message))
+
     cursor.close()
     cnx.close()
-    return redirect("/login_page")
+    return redirect(url_for("login_page"))
 
 
 @app.route('/login_page')
 def login_page():
+
+    # redirect back to same page
+    if 'next_url' not in session:
+        session['next_url'] = request.referrer
     if "username" in session:
-        return render_template("login.html", login=True)
+        return render_template("login.html", messages=request.args.get('messages'), login=True)
     else:
-        return render_template("login.html")
+        email = request.args.get('email')
+        if email is None:
+            email = ""
+        return render_template("login.html", email=email, messages=request.args.get('messages'))
 
 
 @app.route('/login', methods=['post'])
 def login():
-
     if 'username' in session:
-        return render_template('index.html', listings=get_listings(), login=True)
+        return redirect(url_for('index'))
+    elif not request.form['email'] or not request.form['password']:
+        return redirect(url_for('login_page',
+                                email=request.form['email'], messages="Please enter your password and email"))
     else:
-        cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'], database=app.config['DB_NAME'])
+        cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'],
+                                      database=app.config['DB_NAME'])
         cursor = cnx.cursor()
 
         cursor.execute("SELECT * FROM users WHERE email='" + request.form['email'] + "'")
@@ -186,25 +227,40 @@ def login():
             hash = user[3]
             if check_password_hash(hash, request.form['password']):
                 session['username'] = username
-                return redirect('/')
+
+                return redirect(session.pop('next_url', None))
             else:
                 # check for password
-
-                return render_template('login.html', messages='Incorrect email or password')
+                return redirect(url_for('login_page',
+                                        email=request.form['email'], messages='Incorrect email or password entered'))
         else:
-            return render_template('login.html', messages='Incorrect email or password')
+            return redirect(url_for('login_page',
+                                    email=request.form['email'], messages='Incorrect email or password entered'))
 
 
 @app.route('/logout')
 def logout():
     if 'username' in session:
         session.pop('username', None)
-    return redirect('/')
+    return redirect(url_for('index'))
 
 
 @app.route('/create_listing_page')
 def create_listing_page():
-    return render_template("create_listing.html", login=('username' in session))
+    item_name = request.args.get('item_name')
+    item_location = request.args.get('item_location')
+    additional_info = request.args.get('additional_info')
+
+    if item_name is None:
+        item_name = ""
+    if item_location is None:
+        item_location = ""
+    if additional_info is None:
+        additional_info = ""
+
+    return render_template("create_listing.html",
+                           item_name=item_name, item_location=item_location, additional_info=additional_info,
+                           message=request.args.get('message'), login=('username' in session))
 
 
 @app.route('/create_listing', methods=['post'])
@@ -213,20 +269,32 @@ def create_listing():
     cursor = cnx.cursor()
     insert_stmt = "INSERT INTO listings VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
-    print(request.form['item_name'])
-    print(request.form['item_location'])
-    print(request.form['additional_info'])
+    item_name = request.form['item_name']
+    item_location = request.form['item_location']
+    additional_info = request.form['additional_info']
 
     f = request.files['file']
     img_data = f.read()
 
-    data = (None, request.form['item_name'], request.form['item_location'], session['username'], request.form['additional_info'], img_data, 1)
+    if item_name is None or item_location is None or f.filename == '':
+        message = ""
+        if item_name == "":
+            message = "Please fill in the item name"
+        elif item_location == "":
+            message = "Please specify the item location"
+        elif f.filename == '':
+            message = "Please upload an image"
+
+        return redirect(url_for("create_listing_page", item_name=item_name, item_location=item_location,
+                                additional_info=additional_info, message=message))
+
+    data = (None, item_name, item_location, session['username'], additional_info, img_data, 1)
     cursor.execute(insert_stmt, data)
     cnx.commit()
     cursor.close()
     cnx.close()
 
-    return redirect("/")
+    return redirect(url_for("index"))
 
 
 @app.route('/users/<postid>', methods=['get'])
@@ -250,7 +318,8 @@ def get_image(postid):
 
 @app.route('/contact/<postid>', methods=['get'])
 def get_listing(postid):
-    cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'], database=app.config['DB_NAME'])
+    cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'],
+                                  database=app.config['DB_NAME'])
     cursor = cnx.cursor()
 
     query = "SELECT * FROM listings WHERE id=%s"
@@ -262,7 +331,6 @@ def get_listing(postid):
     cnx.close()
 
     if 'username' in session:
-
         return render_template("listing.html", login=True, initial=listings[3][0].upper(), listing=listings)
     else:
         return render_template("listing.html", initial=listings[3][0].upper(), listing=listings)
@@ -281,7 +349,8 @@ def send_messages(postid):
     cursor.close()
     cnx.close()
 
-    return redirect("/contact/" + postid)
+    d = {'message': "success"}
+    return d
 
 
 @app.route('/contact/get-messages/<postid>', methods=['get'])
@@ -311,4 +380,4 @@ def get_messages(postid):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')  # use 0.0.0.0, allow access this app from my cell phone
+    app.run(debug=False, host='0.0.0.0')  # use 0.0.0.0, allow access this app from my cell phone

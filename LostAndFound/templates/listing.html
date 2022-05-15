@@ -147,7 +147,7 @@
                     class="invisible btn btn-danger rounded-pill text-light position-absolute bottom-100 start-50 translate-middle">New
                     message</button>
                 <div class="container input-group mb-3">
-                    <input class="form-control rounded" type="text" name="message" placeholder="Message">
+                    <input id="message" class="form-control rounded" type="text" name="message" placeholder="Message">
                     <input id="send-btn" class="btn btn-primary rounded ms-1 me-12" type="submit" value="Send">
                 </div>
             </form>
@@ -200,15 +200,6 @@
         // messages
         let message_box = document.querySelector(".message-box");
 
-        // ajax form submit
-
-        let send_messages = document.querySelector("#send-btn");
-        send_messages.addEventListener("click", function(event) {
-            event.preventDefault();
-
-            
-        });
-
         let new_message_btn = document.querySelector("#new-message");
         function scroll_to_bottom() {
             message_box.scrollTop = message_box.scrollHeight - message_box.clientHeight;
@@ -218,6 +209,40 @@
             }
         }
 
+        // ajax form submit
+
+        // send
+        let send_messages = document.querySelector("#send-btn");
+        send_messages.addEventListener("click", function (event) {
+            let message_input = document.querySelector("#message");
+
+            if (message_input.value != "") {
+                var request = new XMLHttpRequest();
+                var url = "/contact/send-messages/{{listing.0}}";
+
+                request.onreadystatechange = function () {
+                    if (request.readyState === 4 && request.status === 200) {
+                        var jsonData = JSON.parse(request.response);
+                        console.log(jsonData);
+                    }
+                };
+
+                var formData = new FormData();
+                formData.append(message_input.name, message_input.value);
+
+                request.open("POST", url, true);
+                request.send(formData);
+
+                // message_input.value = "";
+                message_input.value = '';
+            }
+
+            scroll_to_bottom();
+            get_messages();
+            event.preventDefault();
+        });
+
+        // receive
         let prev_max_height = 0;
         function get_messages() {
             let xhr = new XMLHttpRequest();

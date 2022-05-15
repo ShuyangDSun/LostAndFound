@@ -16,12 +16,18 @@
 <body>
     <div class="container main-body d-flex justify-content-center align-items-center">
         {% if not login %}
-        
+
         <form action="/login" method="post">
             <p class="fs-1 pb-20">Login</p>
 
+            {% if messages %}
+            <div class="alert alert-danger" role="alert">
+                {{messages}}
+            </div>
+            {% endif %}
+
             <div class="form-floating mb-3">
-                <input type="email" name="email" class="form-control" id="floatingInput" placeholder="name@example.com">
+                <input type="email" name="email" class="form-control" id="floatingInput" placeholder="name@example.com" value="{{email}}">
                 <label for="floatingInput">Email address</label>
             </div>
             <div class="form-floating mb-3">
@@ -44,7 +50,7 @@
             <a role="button" class="btn btn-primary" href="/">Homepage</a>
         </div>
         {% endif %}
-        
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"

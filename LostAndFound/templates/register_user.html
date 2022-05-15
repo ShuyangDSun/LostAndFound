@@ -25,15 +25,21 @@
         <form action="/register_user" method="post">
             <p class="fs-1 pb-20">Create account</p>
 
+            {% if messages %}
+            <div class="alert alert-danger" role="alert">
+                {{messages}}
+            </div>
+            {% endif %}
+
             <div class="form-floating mb-3">
-                <input type="text" name="username" class="form-control" id="username" placeholder="e.g SuperAvocado123">
+                <input type="text" name="username" class="form-control" id="username" placeholder="e.g SuperAvocado123" value="{{username}}">
                 <label for="username">Username</label>
 
                 <div class="caption fw-lighter">This is what will be displayed to other people</div>
             </div>
 
             <div class="form-floating mb-3">
-                <input type="email" name="email" class="form-control" id="floatingInput" placeholder="name@example.com">
+                <input type="email" name="email" class="form-control" id="floatingInput" placeholder="name@example.com" value="{{email}}">
                 <label for="floatingInput">Email address</label>
             </div>
 
