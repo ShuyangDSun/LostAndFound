@@ -2,7 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cb318418-9be0-4286-8b7a-e1f9b9ccc0c9" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/LostAndFound/server.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LostAndFound/.idea/LostAndFound.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/LostAndFound/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/LostAndFound/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/LostAndFound/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/LostAndFound/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/LostAndFound/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,7 +30,7 @@
     </findStrings>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/LostAndFound" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
