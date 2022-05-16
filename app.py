@@ -8,14 +8,14 @@ import os
 app = Flask(__name__)
 
 # configurations
-# from config import Config
-# app.config.from_object(Config)
-# app.secret_key = app.config['SECRET_KEY']
-app.config['MYSQL_HOST'] = os.environ.get('CLEARDB_DATABASE_HOST')
-app.config['MYSQL_USER'] = os.environ.get('CLEARDB_DATABASE_USER')
-app.config['MYSQL_PASSWORD'] = os.environ.get('CLEARDB_DATABASE_PASS')
-app.config['MYSQL_DB'] = os.environ.get('CLEARDB_DATABASE_DB')
-app.secret_key = os.environ.get('SECRET_KEY')
+from config import Config
+app.config.from_object(Config)
+app.secret_key = app.config['SECRET_KEY']
+# app.config['MYSQL_HOST'] = os.environ.get('CLEARDB_DATABASE_HOST')
+# app.config['MYSQL_USER'] = os.environ.get('CLEARDB_DATABASE_USER')
+# app.config['MYSQL_PASSWORD'] = os.environ.get('CLEARDB_DATABASE_PASS')
+# app.config['MYSQL_DB'] = os.environ.get('CLEARDB_DATABASE_DB')
+# app.secret_key = os.environ.get('SECRET_KEY')
 
 # error handling
 # @app.errorhandler(404)
@@ -41,7 +41,7 @@ def get_listings():
     return listings
 
 
-@app.route('/')
+@app.route('/', methods=['get'])
 def index():
     if 'username' in session:
         return render_template("index.html", initial=session['username'][0].upper(), listings=get_listings(), login=True)
