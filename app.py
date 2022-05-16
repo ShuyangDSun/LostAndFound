@@ -46,7 +46,7 @@ def index():
 @app.route('/my_listings')
 def my_listings():
     if 'username' in session:
-        cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
+        cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
         cursor = cnx.cursor()
 
         query = "SELECT * FROM listings WHERE is_live=1 AND posterid='" + session['username'] + "'"
@@ -66,7 +66,7 @@ def my_listings():
 @app.route('/archived')
 def view_archived():
     if 'username' in session:
-        cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
+        cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
         cursor = cnx.cursor()
 
         query = "SELECT * FROM listings WHERE is_live=0 AND posterid='" + session['username'] + "'"
@@ -85,7 +85,7 @@ def view_archived():
 
 @app.route('/edit-listing/<postid>', methods=['post'])
 def edit_listing(postid):
-    cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
+    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
                                   database=app.config['MYSQL_DB'])
     cursor = cnx.cursor()
 
@@ -110,7 +110,7 @@ def edit_listing(postid):
 
 @app.route('/archive-listing/<postid>', methods=['get'])
 def archive_listing(postid):
-    cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
+    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
                                   database=app.config['MYSQL_DB'])
     cursor = cnx.cursor()
 
@@ -126,7 +126,7 @@ def archive_listing(postid):
 
 @app.route('/relist-listing/<postid>', methods=['get'])
 def relist_listing(postid):
-    cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
+    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
                                   database=app.config['MYSQL_DB'])
     cursor = cnx.cursor()
 
@@ -160,7 +160,7 @@ def register_user():
     if not request.form['username'] or not request.form['email'] or not request.form['password']:
         return redirect(url_for('register_user_page', messages="Please enter all fields"))
 
-    cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
+    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
     cursor = cnx.cursor()
     insert_stmp = 'INSERT INTO users VALUES (%s, %s, %s, %s)'
 
@@ -216,7 +216,7 @@ def login():
         return redirect(url_for('login_page',
                                 email=request.form['email'], messages="Please enter your password and email"))
     else:
-        cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
+        cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
                                       database=app.config['MYSQL_DB'])
         cursor = cnx.cursor()
 
@@ -268,7 +268,7 @@ def create_listing_page():
 
 @app.route('/create_listing', methods=['post'])
 def create_listing():
-    cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
+    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
     cursor = cnx.cursor()
     insert_stmt = "INSERT INTO listings VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
@@ -302,7 +302,7 @@ def create_listing():
 
 @app.route('/users/<postid>', methods=['get'])
 def get_image(postid):
-    cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
+    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
     cursor = cnx.cursor()
 
     query = "SELECT * FROM listings WHERE id=%s"
@@ -321,7 +321,7 @@ def get_image(postid):
 
 @app.route('/contact/<postid>', methods=['get'])
 def get_listing(postid):
-    cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
+    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
                                   database=app.config['MYSQL_DB'])
     cursor = cnx.cursor()
 
@@ -341,7 +341,7 @@ def get_listing(postid):
 
 @app.route('/contact/send-messages/<postid>', methods=['post'])
 def send_messages(postid):
-    cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
+    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
     cursor = cnx.cursor()
 
     query = "INSERT INTO messages VALUES (%s, %s, %s, %s)"
@@ -358,7 +358,7 @@ def send_messages(postid):
 
 @app.route('/contact/get-messages/<postid>', methods=['get'])
 def get_messages(postid):
-    cnx = mysql.connector.connect(user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
+    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
     cursor = cnx.cursor()
 
     query = "SELECT senderid, message FROM messages WHERE postid=%s"
