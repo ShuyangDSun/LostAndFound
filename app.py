@@ -25,16 +25,15 @@ app.secret_key = app.config['SECRET_KEY']
 
 
 def get_listings():
-    # cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'], database=app.config['DB_NAME'])
-    # cursor = cnx.cursor()
-    #
-    # query = "SELECT * FROM listings WHERE is_live=1"
-    # cursor.execute(query)
-    # listings = cursor.fetchall()
-    #
-    # cursor.close()
-    # cnx.close()
-    listings = ((0, app.config['DB_HOST'], app.config['DB_USER']), (0, app.config['DB_PASSWORD'], app.config['DB_NAME']))
+    cnx = mysql.connector.connect(user=app.config['DB_USER'], password=app.config['DB_PASSWORD'], database=app.config['DB_NAME'])
+    cursor = cnx.cursor()
+
+    query = "SELECT * FROM listings WHERE is_live=1"
+    cursor.execute(query)
+    listings = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
     return listings
 
 
