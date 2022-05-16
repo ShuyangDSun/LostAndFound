@@ -34,7 +34,7 @@ def get_listings():
     #
     # cursor.close()
     # cnx.close()
-    listings = ((0, os.environ.get('CLEARDB_DATABASE_HOST'), os.environ.get('CLEARDB_DATABASE_USER')), (0, os.environ.get('CLEARDB_DATABASE_PASS'), os.environ.get('CLEARDB_DATABASE_DB')))
+    listings = ((0, app.config['DB_HOST'], app.config['DB_USER']), (0, app.config['DB_PASSWORD'], app.config['DB_NAME']))
     return listings
 
 
