@@ -37,15 +37,15 @@ def get_listings():
     listings = ((0, os.environ.get('CLEARDB_DATABASE_HOST'), os.environ.get('CLEARDB_DATABASE_USER')), (0, os.environ.get('CLEARDB_DATABASE_PASS'), os.environ.get('CLEARDB_DATABASE_DB')))
     return listings
 
-#
-# @app.route('/')
-# def index():
-#     if 'username' in session:
-#         return render_template("index.html", initial=session['username'][0].upper(), listings=get_listings(), login=True)
-#     else:
-#         return render_template("index.html", listings=get_listings())
-#
-#
+
+@app.route('/')
+def index():
+    if 'username' in session:
+        return render_template("index.html", initial=session['username'][0].upper(), listings=get_listings(), login=True)
+    else:
+        return render_template("index.html", listings=get_listings())
+
+
 # @app.route('/my_listings')
 # def my_listings():
 #     if 'username' in session:
