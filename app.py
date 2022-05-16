@@ -8,10 +8,14 @@ import os
 app = Flask(__name__)
 
 # configurations
-from config import Config
-app.config.from_object(Config)
-app.secret_key = app.config['SECRET_KEY']
-
+# from config import Config
+# app.config.from_object(Config)
+# app.secret_key = app.config['SECRET_KEY']
+app.config['MYSQL_HOST'] = os.environ.get('CLEARDB_DATABASE_HOST')
+app.config['DB_USER'] = os.environ.get('CLEARDB_DATABASE_USER')
+app.config['DB_PASSWORD'] = os.environ.get('CLEARDB_DATABASE_PASS')
+app.config['DB_NAME'] = os.environ.get('CLEARDB_DATABASE_DB')
+app.secret_key = os.environ.get('SECRET_KEY')
 
 # error handling
 # @app.errorhandler(404)
