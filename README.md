@@ -1,2 +1,4 @@
 # LostAndFound
-A website where people can post lost items they found and the owner's of the items can message the posters to get them returned.
+A website meant for users to be able to find their lost items or make postings of lost items they find near them. Users can create accounts to message posters and get their lost items back.
+
+Website link: http://lost-and-found-heroku.herokuapp.com/
