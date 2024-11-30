@@ -92,25 +92,25 @@
 
             <div class="col-12 col-md-6 col-lg-4 col-xl-3 d-flex justify-content-center">
                 <div class="card" style="width: 18rem;">
-                    <img src="/users/{{listing.0}}" class="card-img-top" alt="...">
+                    <img src="{{listing.image_url}}" class="card-img-top" alt="...">
                     <div class="card-body">
-                        <h5 class="card-title">{{listing.1}}</h5>
-                        <p class="card-text">Found in: {{listing.2}}</p>
+                        <h5 class="card-title">{{listing.item_name}}</h5>
+                        <p class="card-text">Found in: {{listing.item_location}}</p>
 
                         <hr>
 
                         <h5 class="card-title">Additional info</h5>
-                        <p class="card-text text-truncate">{{listing.4}}</p>
+                        <p class="card-text text-truncate">{{listing.additional_info}}</p>
 
                         <!-- buttons -->
                         <!-- Button trigger modal -->
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                            data-bs-target="#edit-{{listing.0}}">
+                            data-bs-target="#edit-{{listing.id}}">
                             Edit
                         </button>
 
                         <!-- Modal -->
-                        <div class="modal fade" id="edit-{{listing.0}}" tabindex="-1"
+                        <div class="modal fade" id="edit-{{listing.id}}" tabindex="-1"
                             aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
@@ -120,7 +120,7 @@
                                             aria-label="Close"></button>
                                     </div>
 
-                                    <form class="edit-post" action="/edit-listing/{{listing.0}}" method="post"
+                                    <form class="edit-post" action="/edit-listing/{{listing.id}}" method="post"
                                         enctype="multipart/form-data">
                                         <div class="modal-body">
                                             <!-- error message -->
@@ -129,14 +129,14 @@
                                             <!-- form submit -->
                                             <div class="form-floating mb-3">
                                                 <input type="text" class="form-control" name="item_name" id="item_name"
-                                                    placeholder="Item name" value="{{listing.1}}"
-                                                    data-default="{{listing.1}}">
+                                                    placeholder="Item name" value="{{listing.item_name}}"
+                                                    data-default="{{listing.item_name}}">
                                                 <label for="item_name">Item name</label>
                                             </div>
                                             <div class="form-floating mb-3">
                                                 <input type="text" class="form-control" name="item_location"
-                                                    id="item_location" placeholder="Item location" value="{{listing.2}}"
-                                                    data-default="{{listing.2}}">
+                                                    id="item_location" placeholder="Item location" value="{{listing.item_location}}"
+                                                    data-default="{{listing.item_location}}">
                                                 <label for="item_location">Item location</label>
                                             </div>
 
@@ -144,7 +144,7 @@
                                                 <label for="additional_info" class="form-label">Additional info</label>
                                                 <textarea class="form-control" name="additional_info"
                                                     id="additional_info" rows="5"
-                                                    data-default="{{listing.4}}">{{listing.4}}</textarea>
+                                                    data-default="{{listing.additional_info}}">{{listing.additional_info}}</textarea>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="image_file" class="form-label">Choose new image to
@@ -161,10 +161,10 @@
                                 </div>
                             </div>
                         </div>
-                        <a href="/archive-listing/{{listing.0}}" class="card-link btn btn-primary">Archive listing</a>
+                        <a href="/archive-listing/{{listing.id}}" class="card-link btn btn-primary">Archive listing</a>
 
                         <hr>
-                        <a href="/contact/{{listing.0}}" class="card-link btn btn-primary">View item</a>
+                        <a href="/contact/{{listing.id}}" class="card-link btn btn-primary">View item</a>
 
                         <!-- Posted date -->
                         <!-- <p class="card-text"><small class="text-muted">Posted</small></p> -->

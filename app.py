@@ -2,7 +2,11 @@ from flask import Flask, request, redirect, url_for, render_template, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from io import BytesIO
 from flask import send_file
-import mysql.connector
+import firebase_admin
+from firebase_admin import credentials, auth, firestore
+from firebase_admin import storage
+import uuid
+import datetime
 
 app = Flask(__name__)
 
@@ -11,28 +15,43 @@ from config import Config
 app.config.from_object(Config)
 app.secret_key = app.config['SECRET_KEY']
 
+# Initialize Firestore
+cred = credentials.Certificate("./lost-and-found-38a87-firebase-adminsdk-werec-2e2149d6fd.json")
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'lost-and-found-38a87.firebasestorage.app'
+})
+db = firestore.client()
+
+# Initialize Cloud Storage
+bucket = storage.bucket()
+
 # error handling
-# @app.errorhandler(404)
-# def not_found_error(error):
-#     return render_template('404.html'), 404
-#
-#
-# @app.errorhandler(500)
-# def server_internal_error(error):
-#     return render_template('500.html'), 500
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def server_internal_error(error):
+    return render_template('500.html'), 500
 
 
 def get_listings():
-    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
-    cursor = cnx.cursor()
-
-    query = "SELECT * FROM listings WHERE is_live=1"
-    cursor.execute(query)
-    listings = cursor.fetchall()
-
-    cursor.close()
-    cnx.close()
-    return listings
+    try:
+        listings_ref = db.collection('listings')
+        query = listings_ref.where('is_live', '==', True).order_by('created_at', direction=firestore.Query.DESCENDING)
+        
+        listings = []
+        for doc in query.stream():
+            listing_data = doc.to_dict()
+            listing_data['id'] = doc.id
+            listings.append(listing_data)
+        
+        print(f"Listings: {listings}")
+        return listings
+    except Exception as e:
+        print(f"Error fetching listings: {e}")
+        return []
 
 
 @app.route('/', methods=['get'])
@@ -45,99 +64,190 @@ def index():
 
 @app.route('/my_listings')
 def my_listings():
-    if 'username' in session:
-        cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
-        cursor = cnx.cursor()
-
-        query = "SELECT * FROM listings WHERE is_live=1 AND posterid='" + session['username'] + "'"
-        cursor.execute(query)
-        listings = cursor.fetchall()
-
-        cursor.close()
-        cnx.close()
+    if 'username' not in session:
+        return render_template("my_listings.html", 
+            messages="Login to see your listings")
+    
+    try:
+        listings_ref = db.collection('listings')
+        query = listings_ref.where('poster_id', '==', session['uid'])\
+                          .where('is_live', '==', True)\
+                          .order_by('created_at', direction=firestore.Query.DESCENDING)
+        
+        listings = []
+        for doc in query.stream():
+            listing_data = doc.to_dict()
+            listing_data['id'] = doc.id
+            listings.append(listing_data)
+        print(f"Listings: {listings}")
+        
         if listings:
-            return render_template("my_listings.html", initial=session['username'][0].upper(), login=True, listings=listings)
+            return render_template("my_listings.html", 
+                initial=session['username'][0].upper(), 
+                login=True, 
+                listings=listings)
         else:
-            return render_template("my_listings.html", initial=session['username'][0].upper(), login=True, messages="You have no listings :)")
-    else:
-        return render_template("my_listings.html", messages="Login to see your listings")
+            return render_template("my_listings.html", 
+                initial=session['username'][0].upper(), 
+                login=True, 
+                messages="You have no listings :)")
+
+    except Exception as e:
+        print(f"Error fetching listings: {e}")
+        return render_template("my_listings.html", 
+            initial=session['username'][0].upper(), 
+            login=True, 
+            messages="Error fetching listings")
 
 
 @app.route('/archived')
 def view_archived():
-    if 'username' in session:
-        cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
-        cursor = cnx.cursor()
+    if 'username' not in session:
+        return render_template("archived.html", 
+            messages="Login to see your archived listings")
+    
+    try:
+        listings_ref = db.collection('listings')
+        query = listings_ref.where('poster_id', '==', session['uid'])\
+                          .where('is_live', '==', False)\
+                          .order_by('created_at', direction=firestore.Query.DESCENDING)
+        
+        listings = []
+        for doc in query.stream():
+            listing_data = doc.to_dict()
+            listing_data['id'] = doc.id
+            listings.append(listing_data)
 
-        query = "SELECT * FROM listings WHERE is_live=0 AND posterid='" + session['username'] + "'"
-        cursor.execute(query)
-        listings = cursor.fetchall()
-
-        cursor.close()
-        cnx.close()
         if listings:
-            return render_template("archived.html", initial=session['username'][0].upper(), login=True, listings=listings)
+            return render_template("archived.html", 
+                initial=session['username'][0].upper(), 
+                login=True, 
+                listings=listings)
         else:
-            return render_template("archived.html", initial=session['username'][0].upper(), login=True, messages="No archived listings here :)")
-    else:
-        return render_template("archived.html", messages="Login to see your archived listings")
+            return render_template("archived.html", 
+                initial=session['username'][0].upper(), 
+                login=True, 
+                messages="No archived listings here :)")
+
+    except Exception as e:
+        print(f"Error fetching archived listings: {e}")
+        return render_template("archived.html", 
+            initial=session['username'][0].upper(), 
+            login=True, 
+            messages="Error fetching archived listings")
 
 
-@app.route('/edit-listing/<postid>', methods=['post'])
-def edit_listing(postid):
-    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
-                                  database=app.config['MYSQL_DB'])
-    cursor = cnx.cursor()
+@app.route('/edit-listing/<listing_id>', methods=['POST'])
+def edit_listing(listing_id):
+    if 'username' not in session:
+        return redirect(url_for('login_page'))
 
-    query = "UPDATE listings SET item_name=%s, item_location=%s, additional_info=%s WHERE id=%s"
+    try:
+        listing_ref = db.collection('listings').document(listing_id)
+        listing_doc = listing_ref.get()
 
-    data = (request.form['item_name'], request.form['item_location'], request.form['additional_info'], postid)
+        if not listing_doc.exists:
+            return redirect(url_for('my_listings'))
 
-    f = request.files['file']
-    if f.filename != '':
-        query = "UPDATE listings SET item_name=%s, item_location=%s, additional_info=%s, image=%s WHERE id=%s"
-        new_image = f.read()
-        data = (request.form['item_name'], request.form['item_location'], request.form['additional_info'], new_image, postid)
+        listing_data = listing_doc.to_dict()
 
-    cursor.execute(query, data)
-    cnx.commit()
+        if listing_data['poster_id'] != session['uid']:
+            return redirect(url_for('my_listings', messages="You don't have permission to edit this listing"))
 
-    cursor.close()
-    cnx.close()
+        item_name = request.form.get('item_name')
+        item_location = request.form.get('item_location')
+        additional_info = request.form.get('additional_info')
+        f = request.files.get('file')
 
-    return redirect(url_for('my_listings'))
+        update_data = {
+            'item_name': item_name,
+            'item_location': item_location,
+            'additional_info': additional_info
+        }
+
+        if f and f.filename:
+            try:
+                if 'image_path' in listing_data:
+                    old_blob = storage.bucket().blob(listing_data['image_path'])
+                    old_blob.delete()
+
+                file_extension = f.filename.split('.')[-1]
+                unique_filename = f"{uuid.uuid4()}.{file_extension}"
+                blob = storage.bucket().blob(f"listings/{unique_filename}")
+                blob.upload_from_file(f, content_type=f.content_type)
+                blob.make_public()
+
+                update_data['image_url'] = blob.public_url
+                update_data['image_path'] = f"listings/{unique_filename}"
+            except Exception as e:
+                print(f"Error handling image: {e}")
+                return redirect(url_for('my_listings', messages="Error updating image"))
+
+        listing_ref.update(update_data)
+
+        return redirect(url_for('my_listings'))
+
+    except Exception as e:
+        print(f"Error updating listing: {e}")
+        return redirect(url_for('my_listings', messages="Error updating listing"))
 
 
-@app.route('/archive-listing/<postid>', methods=['get'])
-def archive_listing(postid):
-    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
-                                  database=app.config['MYSQL_DB'])
-    cursor = cnx.cursor()
+@app.route('/archive-listing/<listing_id>', methods=['GET'])
+def archive_listing(listing_id):
+    if 'username' not in session:
+        return redirect(url_for('login_page'))
 
-    query = "UPDATE listings SET is_live=%s WHERE id=%s"
-    data = (0, postid)
-    cursor.execute(query, data)
-    cnx.commit()
+    try:
+        listing_ref = db.collection('listings').document(listing_id)
+        listing_doc = listing_ref.get()
 
-    cursor.close()
-    cnx.close()
-    return redirect(url_for('my_listings'))
+        if not listing_doc.exists:
+            return redirect(url_for('my_listings', messages="Listing not found"))
+
+        listing_data = listing_doc.to_dict()
+
+        if listing_data['poster_id'] != session['uid']:
+            return redirect(url_for('my_listings', messages="You don't have permission to archive this listing"))
+
+        listing_ref.update({
+            'is_live': False,
+            'created_at': firestore.SERVER_TIMESTAMP
+        })
+
+        return redirect(url_for('my_listings'))
+
+    except Exception as e:
+        print(f"Error archiving listing: {e}")
+        return redirect(url_for('my_listings', messages="Error archiving listing"))
 
 
-@app.route('/relist-listing/<postid>', methods=['get'])
-def relist_listing(postid):
-    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
-                                  database=app.config['MYSQL_DB'])
-    cursor = cnx.cursor()
+@app.route('/relist-listing/<listing_id>', methods=['GET'])
+def relist_listing(listing_id):
+    if 'username' not in session:
+        return redirect(url_for('login_page'))
 
-    query = "UPDATE listings SET is_live=1 WHERE id=%s"
-    data = (postid,)
-    cursor.execute(query, data)
-    cnx.commit()
+    try:
+        listing_ref = db.collection('listings').document(listing_id)
+        listing_doc = listing_ref.get()
 
-    cursor.close()
-    cnx.close()
-    return redirect(url_for('view_archived'))
+        if not listing_doc.exists:
+            return redirect(url_for('view_archived', messages="Listing not found"))
+
+        listing_data = listing_doc.to_dict()
+
+        if listing_data['poster_id'] != session['uid']:
+            return redirect(url_for('view_archived', messages="You don't have permission to relist this listing"))
+
+        listing_ref.update({
+            'is_live': True,
+            'created_at': firestore.SERVER_TIMESTAMP
+        })
+
+        return redirect(url_for('my_listings'))
+
+    except Exception as e:
+        print(f"Error relisting listing: {e}")
+        return redirect(url_for('view_archived', messages="Error relisting"))
 
 
 @app.route('/register_user_page')
@@ -160,43 +270,33 @@ def register_user():
     if not request.form['username'] or not request.form['email'] or not request.form['password']:
         return redirect(url_for('register_user_page', messages="Please enter all fields"))
 
-    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
-    cursor = cnx.cursor()
-    insert_stmp = 'INSERT INTO users VALUES (%s, %s, %s, %s)'
-
-    hash = generate_password_hash(request.form['password'])
-
-    username = request.form['username']
-    email = request.form['email']
-
-    data = (None, username, email, hash)
-
     try:
-        cursor.execute(insert_stmp, data)
-        cnx.commit()
-    except mysql.connector.IntegrityError as err:
-        cursor.close()
-        cnx.close()
-
-        message = "Integrity Error"
-
-        # if there are duplicate entries for primary keys
-        if err.msg.split()[-1] == "'users.username_UNIQUE'":
-            message = "Username has already been taken"
-        elif err.msg.split()[-1] == "'users.email_UNIQUE'":
-            message = "Email has already been taken"
-
-        return redirect(url_for("register_user_page", username=username, email=email, messages=message))
-
-    cursor.close()
-    cnx.close()
-    return redirect(url_for("login_page"))
+        user = auth.create_user(
+            email=request.form['email'],
+            password=request.form['password'],
+            display_name=request.form['username']
+        )
+        
+        db.collection('users').document(user.uid).set({
+            'username': request.form['username'],
+            'email': request.form['email']
+        })
+        
+        return redirect(url_for("login_page"))
+    except auth.EmailAlreadyExistsError:
+        return redirect(url_for("register_user_page", 
+            username=request.form['username'], 
+            email=request.form['email'], 
+            messages="Email already exists"))
+    except auth.InvalidEmailError:
+        return redirect(url_for("register_user_page", 
+            username=request.form['username'], 
+            email=request.form['email'], 
+            messages="Invalid email format"))
 
 
 @app.route('/login_page')
 def login_page():
-
-    # redirect back to same page
     if 'next_url' not in session:
         session['next_url'] = request.referrer
     if "username" in session:
@@ -214,37 +314,27 @@ def login():
         return redirect(url_for('index'))
     elif not request.form['email'] or not request.form['password']:
         return redirect(url_for('login_page',
-                                email=request.form['email'], messages="Please enter your password and email"))
-    else:
-        cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
-                                      database=app.config['MYSQL_DB'])
-        cursor = cnx.cursor()
-
-        cursor.execute("SELECT * FROM users WHERE email='" + request.form['email'] + "'")
-        users = cursor.fetchall()
-
-        if users:
-            user = users[0]
-
-            username = user[1]
-            hash = user[3]
-            if check_password_hash(hash, request.form['password']):
-                session['username'] = username
-
-                return redirect(session.pop('next_url', None))
-            else:
-                # check for password
-                return redirect(url_for('login_page',
-                                        email=request.form['email'], messages='Incorrect email or password entered'))
-        else:
-            return redirect(url_for('login_page',
-                                    email=request.form['email'], messages='Incorrect email or password entered'))
+                            email=request.form['email'], 
+                            messages="Please enter your password and email"))
+    
+    try:
+        user = auth.get_user_by_email(request.form['email'])
+        session['username'] = user.display_name
+        session['uid'] = user.uid
+        
+        return redirect(session.pop('next_url', None))
+    except auth.UserNotFoundError:
+        return redirect(url_for('login_page',
+                            email=request.form['email'], 
+                            messages='Incorrect email or password entered'))
 
 
 @app.route('/logout')
 def logout():
     if 'username' in session:
         session.pop('username', None)
+    if 'uid' in session:
+        session.pop('uid', None)
     return redirect(url_for('index'))
 
 
@@ -268,119 +358,157 @@ def create_listing_page():
 
 @app.route('/create_listing', methods=['post'])
 def create_listing():
-    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
-    cursor = cnx.cursor()
-    insert_stmt = "INSERT INTO listings VALUES (%s, %s, %s, %s, %s, %s, %s)"
+    if 'username' not in session:
+        return redirect(url_for('login_page'))
 
     item_name = request.form['item_name']
     item_location = request.form['item_location']
     additional_info = request.form['additional_info']
-
     f = request.files['file']
-    img_data = f.read()
 
-    if item_name is None or item_location is None or f.filename == '':
+    if not item_name or not item_location or not f.filename:
         message = ""
-        if item_name == "":
+        if not item_name:
             message = "Please fill in the item name"
-        elif item_location == "":
+        elif not item_location:
             message = "Please specify the item location"
-        elif f.filename == '':
+        elif not f.filename:
             message = "Please upload an image"
 
-        return redirect(url_for("create_listing_page", item_name=item_name, item_location=item_location,
-                                additional_info=additional_info, message=message))
+        return redirect(url_for("create_listing_page", 
+            item_name=item_name, 
+            item_location=item_location,
+            additional_info=additional_info, 
+            message=message))
 
-    data = (None, item_name, item_location, session['username'], additional_info, img_data, 1)
-    cursor.execute(insert_stmt, data)
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+    try:
+        file_extension = f.filename.split('.')[-1]
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        
+        blob = bucket.blob(f"listings/{unique_filename}")
+        blob.upload_from_file(f, content_type=f.content_type)
+        
+        blob.make_public()
+        image_url = blob.public_url
 
-    return redirect(url_for("index"))
+        listing_data = {
+            'item_name': item_name,
+            'item_location': item_location,
+            'poster_id': session['uid'],
+            'poster_name': session['username'],
+            'additional_info': additional_info,
+            'image_url': image_url,
+            'image_path': f"listings/{unique_filename}",
+            'is_live': True,
+            'created_at': firestore.SERVER_TIMESTAMP
+        }
+
+        db.collection('listings').add(listing_data)
+
+        return redirect(url_for("index"))
+        
+    except Exception as e:
+        print(f"Error uploading image: {str(e)}")
+        return redirect(url_for("create_listing_page", 
+            item_name=item_name, 
+            item_location=item_location,
+            additional_info=additional_info, 
+            message=f"Error uploading image: {str(e)}"))
 
 
 @app.route('/users/<postid>', methods=['get'])
 def get_image(postid):
-    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
-    cursor = cnx.cursor()
-
-    query = "SELECT * FROM listings WHERE id=%s"
-    data = (postid,)
-    cursor.execute(query, data)
-    listings = cursor.fetchall()
-
-    cursor.close()
-    cnx.close()
-
-    # send file
-    bytes_io = BytesIO(listings[0][5])
-
-    return send_file(bytes_io, mimetype='image/jpeg')
-
-
-@app.route('/contact/<postid>', methods=['get'])
-def get_listing(postid):
-    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'],
-                                  database=app.config['MYSQL_DB'])
-    cursor = cnx.cursor()
-
-    query = "SELECT * FROM listings WHERE id=%s"
-    data = (postid,)
-    cursor.execute(query, data)
-    listings = cursor.fetchall()[0]
-
-    cursor.close()
-    cnx.close()
-
-    if 'username' in session:
-        return render_template("listing.html", login=True, initial=session['username'][0].upper(), listing=listings)
-    else:
-        return render_template("listing.html", listing=listings)
-
-
-@app.route('/contact/send-messages/<postid>', methods=['post'])
-def send_messages(postid):
-    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
-    cursor = cnx.cursor()
-
-    query = "INSERT INTO messages VALUES (%s, %s, %s, %s)"
-    data = (None, postid, session['username'], request.form['message'])
-    cursor.execute(query, data)
-    cnx.commit()
-
-    cursor.close()
-    cnx.close()
-
-    d = {'message': "success"}
-    return d
-
-
-@app.route('/contact/get-messages/<postid>', methods=['get'])
-def get_messages(postid):
-    cnx = mysql.connector.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], password=app.config['MYSQL_PASSWORD'], database=app.config['MYSQL_DB'])
-    cursor = cnx.cursor()
-
-    query = "SELECT senderid, message FROM messages WHERE postid=%s"
-    data = (postid,)
-    cursor.execute(query, data)
-    messages = cursor.fetchall()
-
-    cursor.close()
-    cnx.close()
-
-    d = {"messages": []}
-    for sender, message in messages:
-
-        if 'username' in session:
-            if sender != session["username"]:
-                d["messages"].append({"sender": sender, "message": message, "is_sender": False})
-            else:
-                d["messages"].append({"sender": sender, "message": message, "is_sender": True})
+    try:
+        listing_doc = db.collection('listings').document(postid).get()
+        if listing_doc.exists:
+            return redirect(listing_doc.to_dict()['image_url'])
         else:
-            d["messages"].append({"sender": sender, "message": message, "is_sender": False})
-    return d
+            return '', 404
+    except Exception as e:
+        return str(e), 500
+
+
+@app.route('/contact/<listing_id>')
+def get_listing(listing_id):
+    try:
+        listing_doc = db.collection('listings').document(listing_id).get()
+        
+        if not listing_doc.exists:
+            return render_template('listing.html', 
+                messages="Listing not found", 
+                login='username' in session,
+                initial=session['username'][0].upper() if 'username' in session else None,
+                listing={"id": listing_id, "item_name": "Item not found", "item_location": "", "poster_name": "", "additional_info": "", "image_url": ""})
+
+        listing = listing_doc.to_dict()
+        listing['id'] = listing_doc.id
+
+        is_owner = 'username' in session and listing['poster_id'] == session['uid']
+        
+        return render_template('listing.html',
+            listing=listing,
+            is_owner=is_owner,
+            login='username' in session,
+            initial=session['username'][0].upper() if 'username' in session else None)
+
+    except Exception as e:
+        print(f"Error getting listing: {e}")
+        return render_template('listing.html', 
+            messages="Error retrieving listing", 
+            login='username' in session,
+            initial=session['username'][0].upper() if 'username' in session else None,
+            listing={id: listing_id, item_name: "Item not found", item_location: "", poster_name: "", additional_info: "", image_url: ""},
+            is_owner=False)
+
+
+@app.route('/contact/send-messages/<listing_id>', methods=['POST'])
+def send_messages(listing_id):
+    if 'username' not in session:
+        return redirect(url_for('login_page'))
+
+    try:
+        listing_doc = db.collection('listings').document(listing_id).get()
+        
+        if not listing_doc.exists:
+            return redirect(url_for('index', messages="Listing not found"))
+        
+        message_content = request.form.get('message')
+
+        message_data = {
+            'listing_id': listing_id,
+            'sender_id': session['uid'],
+            'sender_name': session['username'],
+            'message': message_content,
+            'timestamp': firestore.SERVER_TIMESTAMP
+        }
+        
+        db.collection('messages').add(message_data)
+        
+        return {'message': 'success'}
+
+    except Exception as e:
+        print(f"Error sending message: {e}")
+        return {'message': 'error'}
+
+
+@app.route('/contact/get-messages/<listing_id>', methods=['GET'])
+def get_messages(listing_id):
+    try:
+        messages = db.collection('messages').where('listing_id', '==', listing_id).order_by('timestamp', direction=firestore.Query.ASCENDING)
+
+        d = {"messages": []}
+        for message in messages.stream():
+            data = message.to_dict()
+            if 'uid' in session:
+                d["messages"].append({"sender": data["sender_name"], "message": data["message"], "is_sender": data["sender_id"] == session["uid"]})
+            else:
+                d["messages"].append({"sender": data["sender_name"], "message": data["message"], "is_sender": False})
+
+        return d
+    except Exception as e:
+        print(f"Error getting messages: {e}")
+        return {'message': 'error'}
 
 
 if __name__ == "__main__":
-    app.run(debug=False, host='0.0.0.0')  # use 0.0.0.0, allow access this app from my cell phone
+    app.run(port=8000, debug=False, host='0.0.0.0')

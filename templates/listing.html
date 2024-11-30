@@ -108,31 +108,31 @@
     <div id="main-body" class="container" style="padding-top: 16px; padding-bottom: 50px;">
 
         <!-- image posting -->
-        <p class="fs-1 gy-5 text-center text-sm-center text-md-center text-lg-start">Lost item: {{listing.1}}</p>
+        <p class="fs-1 gy-5 text-center text-sm-center text-md-center text-lg-start">Lost item: {{listing.item_name}}</p>
 
         <div class="card mb-3">
             <div class="row g-0">
                 <div class="img-container bg-dark col-lg-6 d-flex justify-content-center align-items-center">
-                    <img src="/users/{{listing.0}}" class="img-fluid rounded-start" alt="...">
+                    <img src="{{listing.image_url}}" class="img-fluid rounded-start" alt="...">
                 </div>
 
                 <div class="col-lg-6">
                     <div class="card-body position-relative" style="height: 100%; width:100%;">
                         <div class="d-flex align-items-center">
                             <h5 class="card-title fs-5 me-2 mb-0">Location found:</h5>
-                            <div class="card-text">{{listing.2}}</div>
+                            <div class="card-text">{{listing.item_location}}</div>
                         </div>
 
                         <hr>
 
                         <h5 class="card-title">Additional info</h5>
-                        <p class="card-text text-truncate">{{listing.4}}</p>
+                        <p class="card-text text-truncate">{{listing.additional_info}}</p>
                     </div>
                 </div>
             </div>
 
             <div class="card-footer text-muted">
-                Posted by: {{listing.3}}
+                Posted by: {{listing.poster_name}}
 
                 <!-- Posted date -->
                 <!-- <p class="card-text"><small class="text-muted">Posted</small></p> -->
@@ -146,7 +146,7 @@
             </div>
 
             {% if login %}
-            <form action="/contact/send-messages/{{listing.0}}" method="post" class="send-message position-relative">
+            <form action="/contact/send-messages/{{listing.id}}" method="post" class="send-message position-relative">
                 <button type="button" onclick="scroll_to_bottom()" id="new-message"
                     class="invisible btn btn-danger rounded-pill text-light position-absolute bottom-100 start-50 translate-middle">New
                     message</button>
@@ -215,41 +215,6 @@
 
         // ajax form submit
 
-        // send
-        let send_message = document.querySelector("#send-btn");
-        if (send_message) {
-            send_message.addEventListener("click", send_messages);
-        }
-
-        function send_messages(event) {
-            let message_input = document.querySelector("#message");
-
-            if (message_input.value != "") {
-                var request = new XMLHttpRequest();
-                var url = "/contact/send-messages/{{listing.0}}";
-
-                request.onreadystatechange = function () {
-                    if (request.readyState === 4 && request.status === 200) {
-                        var jsonData = JSON.parse(request.response);
-                        console.log(jsonData);
-                    }
-                };
-
-                var formData = new FormData();
-                formData.append(message_input.name, message_input.value);
-
-                request.open("POST", url, true);
-                request.send(formData);
-
-                // message_input.value = "";
-                message_input.value = '';
-            }
-
-            scroll_to_bottom();
-            get_messages();
-            event.preventDefault();
-        }
-
         // receive
         let prev_max_height = 0;
         function get_messages() {
@@ -294,8 +259,6 @@
 
                 message_box.innerHTML = updated_message_box;
 
-                console.log(responseObject);
-
                 // set scroll height to bottom
                 if (changeHeight) {
                     prev_max_height = message_box.scrollHeight - message_box.clientHeight;
@@ -303,8 +266,43 @@
                 }
             }
 
-            xhr.open('GET', '/contact/get-messages/{{listing.0}}', true);
+            xhr.open('GET', '/contact/get-messages/{{listing.id}}', true);
             xhr.send(null);
+        }
+
+        // send
+        let send_message = document.querySelector("#send-btn");
+        if (send_message) {
+            send_message.addEventListener("click", send_messages);
+        }
+
+        function send_messages(event) {
+            let message_input = document.querySelector("#message");
+
+            if (message_input.value != "") {
+                var request = new XMLHttpRequest();
+                var url = "/contact/send-messages/{{listing.id}}";
+
+                request.onreadystatechange = function () {
+                    if (request.readyState === 4 && request.status === 200) {
+                        var jsonData = JSON.parse(request.response);
+                        console.log(jsonData);
+                        get_messages();
+                    }
+                };
+
+                var formData = new FormData();
+                formData.append(message_input.name, message_input.value);
+
+                request.open("POST", url, true);
+                request.send(formData);
+
+                // message_input.value = "";
+                message_input.value = '';
+            }
+
+            scroll_to_bottom();
+            event.preventDefault();
         }
 
         // make sure sender is logged in
@@ -312,7 +310,7 @@
         get_messages();
         setInterval(function () {
             get_messages();
-        }, 1000);
+        }, 5000);
 
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"

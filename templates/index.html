@@ -80,12 +80,12 @@
 
             <div class="col-12 col-md-6 col-lg-4 col-xl-3 d-flex justify-content-center">
                 <div class="card" style="width: 18rem;">
-                    <img src="/users/{{listing.0}}" class="card-img-top" alt="...">
+                    <img src="{{ listing.image_url }}" alt="{{ listing.item_name }}">
                     <div class="card-body">
-                        <h5 class="card-title">{{listing.1}}</h5>
-                        <p class="card-text">Found in: {{listing.2}}</p>
+                        <h5 class="card-title">{{listing.item_name}}</h5>
+                        <p class="card-text">Found in: {{listing.item_location}}</p>
 
-                        <a href="/contact/{{listing.0}}" class="card-link btn btn-primary">View item</a>
+                        <a href="/contact/{{listing.id}}" class="card-link btn btn-primary">View item</a>
                         <!-- Posted date -->
                         <!-- <p class="card-text"><small class="text-muted">Posted</small></p> -->
                     </div>
