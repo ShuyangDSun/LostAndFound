@@ -1,6 +1,4 @@
 from flask import Flask, request, redirect, url_for, render_template, session
-from werkzeug.security import generate_password_hash, check_password_hash
-from io import BytesIO
 from flask import send_file
 import firebase_admin
 from firebase_admin import credentials, auth, firestore
