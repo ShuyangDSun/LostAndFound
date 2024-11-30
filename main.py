@@ -10,11 +10,6 @@ import datetime
 
 app = Flask(__name__)
 
-# configurations
-from config import Config
-app.config.from_object(Config)
-app.secret_key = app.config['SECRET_KEY']
-
 # Initialize Firestore
 cred = credentials.Certificate("./lost-and-found-38a87-firebase-adminsdk-werec-2e2149d6fd.json")
 firebase_admin.initialize_app(cred, {
